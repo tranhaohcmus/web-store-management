@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Product Types API</title>
+  </head>
+  <body>
+    <h1>Testing Product Types API</h1>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="result"></pre>
+
+    <script>
+      async function testAPI() {
+        const token = localStorage.getItem("access_token");
+        console.log("Token:", token);
+
+        try {
+          const response = await fetch(
+            "http://localhost:3000/api/v1/admin/product-types",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+          console.log("Response:", data);
+        } catch (error) {
+          document.getElementById("result").textContent =
+            "Error: " + error.message;
+          console.error("Error:", error);
+        }
+      }
+
+      // Auto-run on load
+      window.onload = testAPI;
+    </script>
+  </body>
+</html>

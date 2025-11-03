@@ -1,0 +1,716 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { fetchBrands } from "../../store/slices/brandSlice";
+import { fetchCategories } from "../../store/slices/categorySlice";
+import adminAPI from "../../services/adminService";
+import Loading from "../../components/Common/Loading";
+import { ArrowLeft, Upload, X, Plus, Trash2 } from "lucide-react";
+
+function CreateProduct() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  const { brands } = useSelector((state) => state.brands);
+  const { categories } = useSelector((state) => state.categories);
+
+  const [loading, setLoading] = useState(false);
+  const [productTypes, setProductTypes] = useState([]);
+  
+  // Step 1: Product Info
+  const [productData, setProductData] = useState({
+    name: "",
+    description: "",
+    product_type_id: "",
+    brand_id: "",
+    category_id: "",
+    status: "draft",
+  });
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  
+  // Step 2: Variants
+  const [variants, setVariants] = useState([]);
+  const [currentVariant, setCurrentVariant] = useState({
+    attributes: {}, // { attribute_id: value_id }
+    price: "",
+    promotion_price: "",
+    physical_stock: 0,
+  });
+
+  const [errors, setErrors] = useState({});
+
+  // Load initial data
+  useEffect(() => {
+    const loadData = async () => {
+      dispatch(fetchBrands());
+      dispatch(fetchCategories());
+      
+      try {
+        const res = await adminAPI.getProductTypes();
+        if (res.data.success && res.data.data) {
+          setProductTypes(res.data.data.productTypes || []);
+        }
+      } catch (error) {
+        console.error("Error loading product types:", error);
+      }
+    };
+    
+    loadData();
+  }, [dispatch]);
+
+  // Get selected product type details
+  const selectedProductType = productTypes.find(
+    (pt) => pt.id === parseInt(productData.product_type_id)
+  );
+
+  const handleProductChange = (e) => {
+    const { name, value } = e.target;
+    setProductData((prev) => ({ ...prev, [name]: value }));
+    
+    // Reset variants when changing product type
+    if (name === "product_type_id") {
+      setVariants([]);
+      setCurrentVariant({
+        attributes: {},
+        price: "",
+        promotion_price: "",
+        physical_stock: 0,
+      });
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image must be less than 5MB");
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleAttributeChange = (attributeId, valueId) => {
+    setCurrentVariant((prev) => ({
+      ...prev,
+      attributes: {
+        ...prev.attributes,
+        [attributeId]: parseInt(valueId),
+      },
+    }));
+  };
+
+  const generateSKU = () => {
+    if (!productData.name) return "AUTO";
+    
+    const namePart = productData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .substring(0, 20);
+    
+    const attrParts = [];
+    if (selectedProductType?.productTypeAttributes) {
+      selectedProductType.productTypeAttributes.forEach((pta) => {
+        const valueId = currentVariant.attributes[pta.attribute_id];
+        if (valueId) {
+          const value = pta.attribute.values?.find((v) => v.id === valueId);
+          if (value) {
+            attrParts.push(value.value.toLowerCase().replace(/\s+/g, ""));
+          }
+        }
+      });
+    }
+    
+    return `${namePart}${attrParts.length > 0 ? "-" + attrParts.join("-") : ""}`.toUpperCase();
+  };
+
+  const addVariant = () => {
+    // Validate required attributes
+    if (selectedProductType?.productTypeAttributes) {
+      const requiredAttrs = selectedProductType.productTypeAttributes.filter(
+        (pta) => pta.is_required
+      );
+      
+      for (const attr of requiredAttrs) {
+        if (!currentVariant.attributes[attr.attribute_id]) {
+          alert(`Vui lòng chọn ${attr.attribute.name}`);
+          return;
+        }
+      }
+    }
+
+    if (!currentVariant.price || parseFloat(currentVariant.price) <= 0) {
+      alert("Vui lòng nhập giá hợp lệ");
+      return;
+    }
+
+    const sku = generateSKU();
+    
+    setVariants((prev) => [
+      ...prev,
+      {
+        ...currentVariant,
+        sku,
+        id: Date.now(),
+      },
+    ]);
+
+    // Reset form
+    setCurrentVariant({
+      attributes: {},
+      price: "",
+      promotion_price: "",
+      physical_stock: 0,
+    });
+  };
+
+  const removeVariant = (index) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate
+    const newErrors = {};
+    if (!productData.name.trim()) newErrors.name = "Required";
+    if (!productData.product_type_id) newErrors.product_type_id = "Required";
+    if (!productData.brand_id) newErrors.brand_id = "Required";
+    if (!productData.category_id) newErrors.category_id = "Required";
+    if (!imageFile) newErrors.image = "Required";
+    if (variants.length === 0) newErrors.variants = "Add at least one variant";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", productData.name);
+      formData.append("description", productData.description);
+      formData.append("product_type_id", productData.product_type_id);
+      formData.append("brand_id", productData.brand_id);
+      formData.append("category_id", productData.category_id);
+      formData.append("status", productData.status);
+      formData.append("image", imageFile);
+
+      // Add variants
+      formData.append(
+        "variants",
+        JSON.stringify(
+          variants.map((v) => ({
+            sku: v.sku,
+            price: parseFloat(v.price),
+            promotion_price: v.promotion_price
+              ? parseFloat(v.promotion_price)
+              : null,
+            physical_stock: parseInt(v.physical_stock) || 0,
+            attributes: v.attributes,
+          }))
+        )
+      );
+
+      const response = await adminAPI.createProduct(formData);
+
+      if (response.data.success) {
+        alert("Product created successfully!");
+        navigate("/admin/products");
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      alert(error.response?.data?.message || "Failed to create product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <Loading />;
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <button
+          onClick={() => navigate("/admin/products")}
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft size={20} />
+          <span>Back to Products</span>
+        </button>
+        <h1 className="text-3xl font-bold mt-4">Create New Product</h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="max-w-4xl">
+        {/* Product Information */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Product Information</h2>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Product Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={productData.name}
+                onChange={handleProductChange}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Nike Mercurial Vapor 15"
+              />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={productData.description}
+                onChange={handleProductChange}
+                rows={4}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Product description..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Product Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="product_type_id"
+                  value={productData.product_type_id}
+                  onChange={handleProductChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Chọn loại sản phẩm</option>
+                  {productTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.product_type_id && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.product_type_id}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Brand <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="brand_id"
+                  value={productData.brand_id}
+                  onChange={handleProductChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.brand_id && (
+                  <p className="text-red-500 text-sm mt-1">{errors.brand_id}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Category <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="category_id"
+                  value={productData.category_id}
+                  onChange={handleProductChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.category_id && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category_id}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Status
+              </label>
+              <select
+                name="status"
+                value={productData.status}
+                onChange={handleProductChange}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Product Image <span className="text-red-500">*</span>
+              </label>
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-48 h-48 object-cover rounded-lg border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+                  <Upload className="w-10 h-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">Click to upload image</p>
+                  <p className="text-xs text-gray-400">PNG, JPG (max 5MB)</p>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+              {errors.image && (
+                <p className="text-red-500 text-sm mt-1">{errors.image}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Product Variants */}
+        {productData.product_type_id && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">
+              Product Variants ({variants.length})
+            </h2>
+
+            {/* Add Variant Form */}
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <h3 className="font-medium mb-3">Thêm biến thể</h3>
+
+              {/* Attributes */}
+              {selectedProductType?.productTypeAttributes?.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                  {selectedProductType.productTypeAttributes
+                    .sort((a, b) => a.display_order - b.display_order)
+                    .map((pta) => (
+                      <div key={pta.attribute_id}>
+                        <label className="block text-sm font-medium mb-1">
+                          {pta.attribute.name}
+                          {pta.is_required && (
+                            <span className="text-red-500">*</span>
+                          )}
+                        </label>
+                        <select
+                          value={currentVariant.attributes[pta.attribute_id] || ""}
+                          onChange={(e) =>
+                            handleAttributeChange(
+                              pta.attribute_id,
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Chọn {pta.attribute.name}</option>
+                          {pta.attribute.values?.map((val) => (
+                            <option key={val.id} value={val.id}>
+                              {val.display_name || val.value}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Price, Promo, Stock */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Price (đ) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={currentVariant.price}
+                    onChange={(e) =>
+                      setCurrentVariant((prev) => ({
+                        ...prev,
+                        price: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Promo Price (đ)
+                  </label>
+                  <input
+                    type="number"
+                    value={currentVariant.promotion_price}
+                    onChange={(e) =>
+                      setCurrentVariant((prev) => ({
+                        ...prev,
+                        promotion_price: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Stock
+                  </label>
+                  <input
+                    type="number"
+                    value={currentVariant.physical_stock}
+                    onChange={(e) =>
+                      setCurrentVariant((prev) => ({
+                        ...prev,
+                        physical_stock: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border rounded-lg"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={addVariant}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-1"
+                  >
+                    <Plus size={16} />
+                    <span>Add</span>
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-2">
+                SKU tự động: {generateSKU()}
+              </p>
+            </div>
+
+            {/* Variants List */}
+            {variants.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="font-medium mb-2">Các biến thể đã thêm:</h3>
+                {variants.map((variant, index) => {
+                  const attrLabels = [];
+                  if (selectedProductType?.productTypeAttributes) {
+                    selectedProductType.productTypeAttributes.forEach((pta) => {
+                      const valueId = variant.attributes[pta.attribute_id];
+                      if (valueId) {
+                        const value = pta.attribute.values?.find(
+                          (v) => v.id === valueId
+                        );
+                        if (value) {
+                          attrLabels.push(
+                            `${pta.attribute.name}: ${value.value}`
+                          );
+                        }
+                      }
+                    });
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-blue-600">
+                          {attrLabels.join(" | ")}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          SKU: {variant.sku} | Giá: {variant.price}đ
+                          {variant.promotion_price &&
+                            ` | KM: ${variant.promotion_price}đ`}{" "}
+                          | Tồn: {variant.physical_stock}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(index)}
+                        className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {errors.variants && (
+              <p className="text-red-500 text-sm mt-2">{errors.variants}</p>
+            )}
+          </div>
+        )}
+                <label className="block text-sm font-medium mb-1">
+                  Price (đ) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={currentVariant.price}
+                  onChange={(e) =>
+                    setCurrentVariant((prev) => ({
+                      ...prev,
+                      price: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Promo Price (đ)
+                </label>
+                <input
+                  type="number"
+                  value={currentVariant.promotion_price}
+                  onChange={(e) =>
+                    setCurrentVariant((prev) => ({
+                      ...prev,
+                      promotion_price: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  value={currentVariant.physical_stock}
+                  onChange={(e) =>
+                    setCurrentVariant((prev) => ({
+                      ...prev,
+                      physical_stock: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center space-x-1"
+                >
+                  <Plus size={16} />
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              SKU will be auto-generated: {generateSKU()}
+            </p>
+          </div>
+
+          {/* Variants List */}
+          {variants.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-medium mb-2">Added Variants:</h3>
+              {variants.map((variant, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-600">
+                      SKU: {variant.sku} | Price: {variant.price}đ
+                      {variant.promotion_price &&
+                        ` | Promo: ${variant.promotion_price}đ`}{" "}
+                      | Stock: {variant.physical_stock}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(index)}
+                    className="ml-3 p-2 text-red-600 hover:bg-red-50 rounded"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {errors.variants && (
+            <p className="text-red-500 text-sm mt-2">{errors.variants}</p>
+          )}
+        </div>
+
+        {/* Submit Buttons */}
+        <div className="flex space-x-3">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/products")}
+            className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? "Creating..." : "Create Product"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default CreateProduct;
