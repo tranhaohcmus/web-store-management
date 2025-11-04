@@ -1,182 +1,362 @@
-# E-Commerce Frontend
+# Frontend - E-Commerce Store Management# E-Commerce Frontend
 
-Frontend application built with React + Vite + Redux Toolkit for the E-Commerce system.
 
-## 🚀 Tech Stack
 
-- **React 18** - UI Library
-- **Vite** - Build tool & Dev server
-- **Redux Toolkit** - State management
-- **React Router** - Routing
-- **Axios** - HTTP client
-- **Tailwind CSS** - Styling
-- **Lucide React** - Icons
+Ứng dụng React cho hệ thống quản lý cửa hàng thương mại điện tử.Frontend application built with React + Vite + Redux Toolkit for the E-Commerce system.
+
+
+
+## 📋 Nội Dung## 🚀 Tech Stack
+
+
+
+- [Yêu Cầu](#yêu-cầu)- **React 18** - UI Library
+
+- [Cài Đặt](#cài-đặt)- **Vite** - Build tool & Dev server
+
+- [Cấu Hình](#cấu-hình)- **Redux Toolkit** - State management
+
+- [Chạy Ứng Dụng](#chạy-ứng-dụng)- **React Router** - Routing
+
+- [Build Production](#build-production)- **Axios** - HTTP client
+
+- [Tính Năng](#tính-năng)- **Tailwind CSS** - Styling
+
+- [Cấu Trúc](#cấu-trúc)- **Lucide React** - Icons
+
 - **React Hot Toast** - Notifications
+
+## Yêu Cầu
 
 ## 📁 Project Structure
 
-```
-src/
+- **Node.js** >= 18.0.0
+
+- **npm** >= 9.0.0```
+
+- Backend API đang chạy tại `http://localhost:3000`src/
+
 ├── components/          # Reusable components
-│   ├── Auth/           # Authentication components
+
+## Cài Đặt│   ├── Auth/           # Authentication components
+
 │   ├── Common/         # Common UI components (Button, Input, etc.)
-│   ├── Layout/         # Layout components (Header, Footer)
+
+### 1. Cài đặt dependencies│   ├── Layout/         # Layout components (Header, Footer)
+
 │   └── Product/        # Product-related components
-├── pages/              # Page components
-│   ├── Auth/           # Login, Register
-│   ├── Cart/           # Shopping cart
+
+```bash├── pages/              # Page components
+
+npm install│   ├── Auth/           # Login, Register
+
+```│   ├── Cart/           # Shopping cart
+
 │   ├── Checkout/       # Checkout flow
-│   ├── Orders/         # Order list & detail
+
+### 2. Tạo file .env│   ├── Orders/         # Order list & detail
+
 │   ├── Products/       # Product list & detail
-│   └── User/           # User profile
+
+Sao chép file `.env.example` và đổi tên thành `.env`:│   └── User/           # User profile
+
 ├── services/           # API services
-│   ├── api.js          # Axios instance with interceptors
-│   ├── authService.js
-│   ├── productService.js
+
+```bash│   ├── api.js          # Axios instance with interceptors
+
+cp .env.example .env│   ├── authService.js
+
+```│   ├── productService.js
+
 │   ├── cartService.js
-│   ├── orderService.js
+
+### 3. Chỉnh sửa file .env│   ├── orderService.js
+
 │   ├── addressService.js
-│   ├── brandService.js
-│   └── categoryService.js
-├── store/              # Redux store
+
+```env│   ├── brandService.js
+
+VITE_API_BASE_URL=http://localhost:3000/api/v1│   └── categoryService.js
+
+```├── store/              # Redux store
+
 │   ├── store.js        # Store configuration
-│   └── slices/         # Redux slices
+
+**Lưu ý:** Nếu backend chạy ở port khác, hãy thay đổi URL cho phù hợp.│   └── slices/         # Redux slices
+
 │       ├── authSlice.js
-│       ├── productSlice.js
+
+## Cấu Hình│       ├── productSlice.js
+
 │       ├── cartSlice.js
-│       ├── orderSlice.js
+
+### Environment Variables│       ├── orderSlice.js
+
 │       ├── addressSlice.js
-│       ├── brandSlice.js
+
+File `.env` chứa các biến môi trường:│       ├── brandSlice.js
+
 │       └── categorySlice.js
-├── utils/              # Utility functions
-│   └── helpers.js      # Helper functions
-├── App.jsx             # Main app component with routes
-├── main.jsx            # App entry point
+
+```env├── utils/              # Utility functions
+
+# Backend API URL│   └── helpers.js      # Helper functions
+
+VITE_API_BASE_URL=http://localhost:3000/api/v1├── App.jsx             # Main app component with routes
+
+```├── main.jsx            # App entry point
+
 └── index.css           # Global styles
-```
 
-## 🔧 Setup Instructions
+## Chạy Ứng Dụng```
 
-### 1. Install Dependencies
 
-```bash
-npm install
-```
 
-### 2. Environment Variables
+### Development Mode## 🔧 Setup Instructions
 
-Create a `.env` file in the root directory:
 
-```env
-VITE_API_URL=http://localhost:3000/api/v1
-```
 
-### 3. Run Development Server
+```bash### 1. Install Dependencies
 
-```bash
 npm run dev
-```
 
-The app will be available at `http://localhost:5173`
+``````bash
 
-### 4. Build for Production
+npm install
 
-```bash
+Ứng dụng sẽ chạy tại: **http://localhost:5173**```
+
+
+
+Vite sẽ tự động reload khi có thay đổi code.### 2. Environment Variables
+
+
+
+### Build ProductionCreate a `.env` file in the root directory:
+
+
+
+Build ứng dụng cho production:```env
+
+VITE_API_URL=http://localhost:3000/api/v1
+
+```bash```
+
 npm run build
-```
 
-### 5. Preview Production Build
+```### 3. Run Development Server
 
-```bash
+
+
+Build files sẽ được tạo trong thư mục `dist/````bash
+
+npm run dev
+
+### Preview Production Build```
+
+
+
+Xem trước build production:The app will be available at `http://localhost:5173`
+
+
+
+```bash### 4. Build for Production
+
 npm run preview
-```
 
-## 🎯 Features
+``````bash
 
-### Authentication
+npm run build
 
-- ✅ User registration
-- ✅ User login
-- ✅ JWT token management with auto-refresh
-- ✅ Protected routes
-- ✅ User profile management
+### Lint Code```
 
-### Products
 
-- ✅ Product listing with filters (category, brand, search, sort)
-- ✅ Product detail with variant selection
-- ✅ Pagination
-- ✅ Product images
+
+Kiểm tra code với ESLint:### 5. Preview Production Build
+
+
+
+```bash```bash
+
+npm run lintnpm run preview
+
+``````
+
+
+
+## Tính Năng## 🎯 Features
+
+
+
+### Khách Hàng### Authentication
+
+
+
+- 🏠 **Trang Chủ:** Hero section, featured products- ✅ User registration
+
+- 🛍️ **Sản Phẩm:** Danh sách, filter, search, chi tiết- ✅ User login
+
+- 🛒 **Giỏ Hàng:** Thêm/xóa/cập nhật, checkout- ✅ JWT token management with auto-refresh
+
+- 📦 **Đơn Hàng:** Lịch sử, tracking, hủy đơn- ✅ Protected routes
+
+- 👤 **Tài Khoản:** Đăng ký/đăng nhập, quản lý profile- ✅ User profile management
+
+
+
+### Quản Trị Viên### Products
+
+
+
+- 📊 **Dashboard:** Thống kê tổng quan- ✅ Product listing with filters (category, brand, search, sort)
+
+- 📦 **Quản Lý Sản Phẩm:** CRUD, upload ảnh, variants- ✅ Product detail with variant selection
+
+- 📋 **Quản Lý Đơn Hàng:** Xem, cập nhật trạng thái- ✅ Pagination
+
+- 👥 **Quản Lý User:** Danh sách, thay đổi role- ✅ Product images
+
 - ✅ Price & promotion display
+
+## Cấu Trúc
 
 ### Shopping Cart
 
-- ✅ Add to cart
-- ✅ Update quantity
-- ✅ Remove items
-- ✅ Cart summary
-- ✅ Stock validation
+```
 
-### Checkout
+frontend/- ✅ Add to cart
 
-- ✅ Address management (create, edit, delete, set default)
-- ✅ Order summary
-- ✅ Customer notes
-- ✅ Order placement
+├── src/- ✅ Update quantity
 
-### Orders
+│   ├── components/          # React components- ✅ Remove items
 
-- ✅ Order history
-- ✅ Order details
-- ✅ Order status tracking
-- ✅ Cancel order
+│   │   ├── Admin/          # Admin components- ✅ Cart summary
 
-### UI/UX
+│   │   ├── Auth/           # Auth components- ✅ Stock validation
 
-- ✅ Responsive design (mobile, tablet, desktop)
+│   │   ├── Common/         # Shared components
+
+│   │   ├── Layout/         # Layout components### Checkout
+
+│   │   └── Products/       # Product components
+
+│   ├── pages/              # Page components- ✅ Address management (create, edit, delete, set default)
+
+│   │   ├── Admin/          # Admin pages- ✅ Order summary
+
+│   │   ├── Auth/           # Auth pages- ✅ Customer notes
+
+│   │   ├── Cart/           # Cart page- ✅ Order placement
+
+│   │   ├── Home/           # Home page
+
+│   │   ├── Orders/         # Order pages### Orders
+
+│   │   └── Products/       # Product pages
+
+│   ├── redux/              # Redux store- ✅ Order history
+
+│   ├── services/           # API services- ✅ Order details
+
+│   ├── lib/                # React Query config- ✅ Order status tracking
+
+│   ├── App.jsx             # Main App- ✅ Cancel order
+
+│   └── main.jsx            # Entry point
+
+├── .env                    # Environment config### UI/UX
+
+└── package.json
+
+```- ✅ Responsive design (mobile, tablet, desktop)
+
 - ✅ Loading states
-- ✅ Error handling
+
+## 🎨 Styling- ✅ Error handling
+
 - ✅ Toast notifications
-- ✅ Clean and modern design with Tailwind CSS
 
-## 🔐 API Integration
+Sử dụng **Tailwind CSS** cho styling.- ✅ Clean and modern design with Tailwind CSS
 
-The app connects to the backend API running at `http://localhost:3000/api/v1`
+
+
+## 🔄 State Management## 🔐 API Integration
+
+
+
+- **Redux Toolkit:** Authentication, CartThe app connects to the backend API running at `http://localhost:3000/api/v1`
+
+- **React Query:** Products, Orders, Categories
 
 ### Authentication Flow
 
+## 🛡️ Route Protection
+
 1. User logs in → Receives `accessToken` and `refreshToken`
-2. `accessToken` stored in localStorage and sent with each request
-3. When `accessToken` expires (401 error) → Auto refresh using `refreshToken`
-4. If refresh fails → Redirect to login
+
+- **PublicRoute:** Chỉ customer/chưa đăng nhập2. `accessToken` stored in localStorage and sent with each request
+
+- **AdminRoute:** Chỉ admin3. When `accessToken` expires (401 error) → Auto refresh using `refreshToken`
+
+- **CustomerRoute:** Chỉ customer4. If refresh fails → Redirect to login
+
+- **PrivateRoute:** Yêu cầu đăng nhập
 
 ### API Services
 
+## 📱 Responsive Design
+
 All API calls are centralized in the `services/` directory:
 
+Responsive cho mobile, tablet, desktop.
+
 - `authService.js` - Authentication endpoints
-- `productService.js` - Product operations
+
+## 🔧 Troubleshooting- `productService.js` - Product operations
+
 - `cartService.js` - Cart management
-- `orderService.js` - Order operations
+
+### Không kết nối Backend- `orderService.js` - Order operations
+
 - `addressService.js` - Address CRUD
-- `brandService.js` - Brand data
-- `categoryService.js` - Category data
+
+- Kiểm tra backend đang chạy- `brandService.js` - Brand data
+
+- Kiểm tra CORS config trong backend- `categoryService.js` - Category data
+
+- Kiểm tra URL trong `.env`
 
 ## 🎨 Styling
 
+### Lỗi 401 Unauthorized
+
 The app uses **Tailwind CSS** for styling with custom utilities:
+
+- Token đã hết hạn, đăng nhập lại
 
 ### Custom Classes
 
+## 📝 Tài Khoản Test
+
 - `.btn-primary` - Primary button style
-- `.btn-secondary` - Secondary button style
-- `.btn-outline` - Outline button style
-- `.input-field` - Input field style
+
+**Admin:**- `.btn-secondary` - Secondary button style
+
+- Email: admin@example.com- `.btn-outline` - Outline button style
+
+- Password: admin123- `.input-field` - Input field style
+
 - `.card` - Card container style
 
-### Color Scheme
+**Customer:**
+
+- Email: customer@example.com### Color Scheme
+
+- Password: customer123
 
 Primary color: Blue (`primary-600`)
+
+Xem `README.md` ở thư mục gốc để biết thêm chi tiết.
 
 - Can be customized in `tailwind.config.js`
 
