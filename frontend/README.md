@@ -1,14 +1,8 @@
 # Frontend - E-Commerce Store Management# E-Commerce Frontend
 
-
-
 Ứng dụng React cho hệ thống quản lý cửa hàng thương mại điện tử.Frontend application built with React + Vite + Redux Toolkit for the E-Commerce system.
 
-
-
 ## 📋 Nội Dung## 🚀 Tech Stack
-
-
 
 - [Yêu Cầu](#yêu-cầu)- **React 18** - UI Library
 
@@ -36,17 +30,17 @@
 
 - Backend API đang chạy tại `http://localhost:3000`src/
 
-├── components/          # Reusable components
+├── components/ # Reusable components
 
-## Cài Đặt│   ├── Auth/           # Authentication components
+## Cài Đặt│ ├── Auth/ # Authentication components
 
-│   ├── Common/         # Common UI components (Button, Input, etc.)
+│ ├── Common/ # Common UI components (Button, Input, etc.)
 
-### 1. Cài đặt dependencies│   ├── Layout/         # Layout components (Header, Footer)
+### 1. Cài đặt dependencies│ ├── Layout/ # Layout components (Header, Footer)
 
-│   └── Product/        # Product-related components
+│ └── Product/ # Product-related components
 
-```bash├── pages/              # Page components
+```````bash├── pages/              # Page components
 
 npm install│   ├── Auth/           # Login, Register
 
@@ -180,17 +174,11 @@ Kiểm tra code với ESLint:### 5. Preview Production Build
 
 npm run lintnpm run preview
 
-``````
-
-
+```````
 
 ## Tính Năng## 🎯 Features
 
-
-
 ### Khách Hàng### Authentication
-
-
 
 - 🏠 **Trang Chủ:** Hero section, featured products- ✅ User registration
 
@@ -202,11 +190,7 @@ npm run lintnpm run preview
 
 - 👤 **Tài Khoản:** Đăng ký/đăng nhập, quản lý profile- ✅ User profile management
 
-
-
 ### Quản Trị Viên### Products
-
-
 
 - 📊 **Dashboard:** Thống kê tổng quan- ✅ Product listing with filters (category, brand, search, sort)
 
@@ -222,7 +206,7 @@ npm run lintnpm run preview
 
 ### Shopping Cart
 
-```
+````
 
 frontend/- ✅ Add to cart
 
@@ -398,7 +382,7 @@ function MyComponent() {
 
   // ...
 }
-```
+````
 
 ## 🛣️ Routes
 
