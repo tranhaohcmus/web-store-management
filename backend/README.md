@@ -1,40 +1,30 @@
 # Backend API - E-Commerce Store Management# 🚀 E-Commerce Backend API
 
-
-
 Backend API cho hệ thống quản lý cửa hàng thương mại điện tử.A complete E-Commerce RESTful API server built with Node.js, Express, and Sequelize MySQL.
 
-
-
 ## 📋 Nội Dung## ✨ Features
-
-
 
 - [Yêu Cầu](#yêu-cầu)- �️ **Complete E-Commerce System**
 
 - [Cài Đặt](#cài-đặt)
 
-- [Cấu Hình](#cấu-hình)  - Product catalog with variants and dynamic attributes
+- [Cấu Hình](#cấu-hình) - Product catalog with variants and dynamic attributes
 
-- [Chạy Server](#chạy-server)  - Shopping cart with automatic stock reservations
+- [Chạy Server](#chạy-server) - Shopping cart with automatic stock reservations
 
-- [Database](#database)  - Order management with status tracking
+- [Database](#database) - Order management with status tracking
 
-- [API Endpoints](#api-endpoints)  - Category tree structure
+- [API Endpoints](#api-endpoints) - Category tree structure
 
-- [Scripts](#scripts)  - Brand management
-
-
+- [Scripts](#scripts) - Brand management
 
 ## Yêu Cầu- �🔐 **Authentication & Authorization**
 
+- **Node.js** >= 18.0.0 - JWT-based authentication
 
+- **MySQL** >= 8.0 - Refresh token support
 
-- **Node.js** >= 18.0.0  - JWT-based authentication
-
-- **MySQL** >= 8.0  - Refresh token support
-
-- **npm** >= 9.0.0  - Token blacklisting
+- **npm** >= 9.0.0 - Token blacklisting
 
   - Role-based access control (client, admin)
 
@@ -44,9 +34,9 @@ Backend API cho hệ thống quản lý cửa hàng thương mại điện tử.
 
 ### 1. Cài đặt dependencies
 
-  - User registration & login
+- User registration & login
 
-```bash  - Profile management
+````bash - Profile management
 
 npm install  - Password change
 
@@ -186,7 +176,7 @@ Chỉnh sửa file `config/config.json`:
 
 }### Prerequisites
 
-```
+````
 
 - Node.js v20 or higher
 
@@ -202,7 +192,7 @@ Chỉnh sửa file `config/config.json`:
 
 1. **Clone the repository:**
 
-```bash
+````bash
 
 mysql -u root -p```bash
 
@@ -242,7 +232,7 @@ SHOW DATABASES;
 
 EXIT;4. **Setup database:**
 
-```
+````
 
 **Option 1: Using SQL Script (Recommended - includes sample data)**
 
@@ -260,7 +250,7 @@ npx sequelize-cli db:migrate**Option 2: Using Migrations (Empty database)**
 
 ```
 
-```bash
+````bash
 
 ### 3. Chạy Seeders# Create database
 
@@ -274,9 +264,7 @@ Thêm dữ liệu mẫu vào database:CREATE DATABASE ecommerce_db;
 
 npx sequelize-cli db:seed:allnpx sequelize-cli db:migrate
 
-``````
-
-
+````
 
 Dữ liệu mẫu bao gồm:5. **Start the server:**
 
@@ -294,7 +282,7 @@ Dữ liệu mẫu bao gồm:5. **Start the server:**
 
 - **Sample Orders, Carts, Addresses**npm start
 
-```
+````
 
 ### 4. Reset Database (Tùy chọn)
 
@@ -652,7 +640,7 @@ Seed files sẽ được tạo trong thư mục `seeders/exported/`- email (uniq
 
 SequelizeConnectionError: Access denied for user```
 
-```
+````
 
 ### Stations Table
 
@@ -670,11 +658,11 @@ SequelizeConnectionError: Access denied for user```
 
 - createdAt
 
-```- updatedAt
+````- updatedAt
 
 Error: listen EADDRINUSE: address already in use :::3000```
 
-```
+````
 
 ## 🚀 Deployment
 
@@ -700,7 +688,7 @@ netstat -ano | findstr :3000- [ ] Configure environment-specific logging
 
 taskkill /PID <PID> /F- [ ] Setup process manager (PM2)
 
-```- [ ] Configure reverse proxy (Nginx)
+````- [ ] Configure reverse proxy (Nginx)
 
 - [ ] Enable HTTPS
 
@@ -722,15 +710,13 @@ mkdir -p public/upload/images/products# Start server
 
 chmod -R 755 public/uploadpm2 start server.js --name recreate-server
 
-```
+````
 
 # Monitor
 
 ## 📁 Cấu Trúcpm2 monit
 
-
-
-```# View logs
+````# View logs
 
 backend/pm2 logs recreate-server
 
@@ -782,7 +768,7 @@ backend/pm2 logs recreate-server
 
 ```npx sequelize-cli db:seed:undo:all
 
-```
+````
 
 ## 📝 Notes
 
@@ -790,7 +776,7 @@ backend/pm2 logs recreate-server
 
 ### Tài Khoản Mẫu
 
-```bash
+````bash
 
 **Admin:**# Development with auto-reload
 
@@ -881,3 +867,4 @@ Xem file `README.md` ở thư mục gốc để biết thêm chi tiết về:
 ---
 
 **Made with ❤️ using Node.js and Express**
+````
